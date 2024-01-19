@@ -3,31 +3,25 @@
 
 export interface Product {
     id : number,
-    name : string,
+    désignation : string,
     price : number,
     quantity : number,
     imageUrl : string,
-    description: string,
-    discount: number
+    categorieId: number
+}
+export interface Categorie {
+  id : number,
+  désignation : string,
 }
 
-type SpringApi<K extends string | number | symbol, T> = {
-    page : {
-        number : number,
-        size: number,
-        totalElement:number,
-        totalPages: number
-    }
-    _embedded : {
-        [key in K]: T
-    }
-    _links: any
-}
+
 
 export type ProductsList = Product[];
+export type CategoriesList = Categorie[];
 
 interface ProdcutState {
-    productList: ProductsList;
+    productList: ProductsList
+    categoriesList : CategoriesList
     productsPending: {
         productsList: boolean
     }
@@ -35,6 +29,7 @@ interface ProdcutState {
 
 const state = (): ProdcutState => ({
     productList: [],
+    categoriesList: [],
     productsPending:{
         productsList: false
     }
@@ -43,7 +38,10 @@ const state = (): ProdcutState => ({
 const getters = {
   getProductsList: (state: ProdcutState) => {
    return state.productList
-  }
+  },
+  getCategoriesList: (state: ProdcutState) => {
+    return state.categoriesList
+   }
 };
 
 export const useProductStore = defineStore("productStore", {
@@ -56,7 +54,7 @@ export const useProductStore = defineStore("productStore", {
     const runTimeConfig = useRuntimeConfig();
 
     try {
-      const response = await $fetch<SpringApi<"produits", ProductsList>>(
+      const response = await $fetch< ProductsList>(
         "/",
         {
           method: "GET",
@@ -64,7 +62,7 @@ export const useProductStore = defineStore("productStore", {
         }
       );
         
-      this.productList = response._embedded.produits
+      this.productList = response
 
 
     } catch (error) {
@@ -75,7 +73,7 @@ export const useProductStore = defineStore("productStore", {
     const runTimeConfig = useRuntimeConfig();
 
     try {
-      const response = await $fetch<SpringApi<"produits", ProductsList>>(
+      const response = await $fetch< ProductsList>(
         `/sorted-by-price?order=${sortOrder}`,
         {
           method: "GET",
@@ -143,6 +141,83 @@ export const useProductStore = defineStore("productStore", {
     } catch (error) {
     throw new Error(String(error))
     }
-   }
+   },
+   async  fetchCategories() {
+    const runTimeConfig = useRuntimeConfig();
+
+    try {
+      const response = await $fetch< CategoriesList>(
+        "/",
+        {
+          method: "GET",
+          baseURL: runTimeConfig.public.categoriesBaseUrl,
+        }
+      );
+        
+      this.categoriesList = response
+
+
+    } catch (error) {
+    throw new Error(String(error))
+    }
+   },
+   async  addCategories(categorieName : string) {
+    const runTimeConfig = useRuntimeConfig();
+
+    try {
+      const response = await $fetch< CategoriesList>(
+        "/",
+        {
+          method: "POST",
+          body:{
+            désignation : categorieName
+          },
+          baseURL: runTimeConfig.public.categoriesBaseUrl,
+        }
+      );
+        
+      this.categoriesList = response
+
+      this.fetchCategories()
+
+    } catch (error) {
+    throw new Error(String(error))
+    }
+   },
+   async  editCategories(categorie: Categorie) {
+    const runTimeConfig = useRuntimeConfig();
+
+    try {
+      const response = await $fetch(
+        `/${categorie.id}`,
+        {
+          method: "PUT",
+          body : toRaw(categorie),
+          baseURL: runTimeConfig.public.categoriesBaseUrl,
+        }
+      );
+        this.fetchCategories()
+
+    } catch (error) {
+    throw new Error(String(error))
+    }
+   },
+   async  deleteCategorie(id: string) {
+    const runTimeConfig = useRuntimeConfig();
+
+    try {
+      const response = await $fetch(
+        `/${id}`,
+        {
+          method: "DELETE",
+          baseURL: runTimeConfig.public.categoriesBaseUrl,
+        }
+      );
+        this.fetchCategories()
+
+    } catch (error) {
+    throw new Error(String(error))
+    }
+   },
   },
 });

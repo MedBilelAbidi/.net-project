@@ -27,9 +27,13 @@ export default defineNuxtConfig({
   ]],
   runtimeConfig: {
     public: {
-      productBaseUrl: 'http://localhost:8888/PRODUIT-SERVICE/produits',
-      clientBaseUrl: 'http://localhost:8888/CLIENT-SERVICE/clients',
-      factureBaseUrl: 'http://localhost:8888/FACTURE-SERVICE/full-facture'
+      productBaseUrl: 'http://localhost:5191/api/Produits',
+      categoriesBaseUrl: 'http://localhost:5191/api/Categories',
+      clientBaseUrl: 'http://localhost:5191/api/Clients',
+      factureBaseUrl: 'http://localhost:5191/api/Factures',
+      ligneFactureBaseUrl: 'http://localhost:5191/api/LigneFacture',
+      authBaseUrl: 'http://localhost:5191/api/Auth/'
+
     },
     
   },

@@ -7,19 +7,6 @@ export interface Facture {
     email: string
 }
 
-type SpringApi<K extends string | number | symbol, T> = {
-    page : {
-        number : number,
-        size: number,
-        totalElement:number,
-        totalPages: number
-    }
-    _embedded : {
-        [key in K]: T
-    }
-    _links: any
-}
-
 export type FacturesList = Facture[];
 
 interface FactureState {
