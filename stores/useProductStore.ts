@@ -3,7 +3,7 @@
 
 export interface Product {
     id : number,
-    désignation : string,
+    Designation : string,
     price : number,
     quantity : number,
     imageUrl : string,
@@ -11,7 +11,7 @@ export interface Product {
 }
 export interface Categorie {
   id : number,
-  désignation : string,
+  Designation : string,
 }
 
 
@@ -170,7 +170,7 @@ export const useProductStore = defineStore("productStore", {
         {
           method: "POST",
           body:{
-            désignation : categorieName
+            Designation : categorieName
           },
           baseURL: runTimeConfig.public.categoriesBaseUrl,
         }

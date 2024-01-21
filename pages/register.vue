@@ -2,7 +2,8 @@
   <div class="surface-card p-4 shadow-2 border-round w-full lg:w-4">
     <div class="text-center mb-5">
       <div class="text-900 text-3xl font-medium mb-3">Welcome</div>
-      <div class="text-900 text-xl font-medium mb-3">Register Now for free</div>
+      <span class="text-600 font-medium line-height-3">You have an account?</span>
+      <nuxt-link to="/connection" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Sign in now!</nuxt-link>
 
     </div>
 
@@ -62,7 +63,7 @@
       />
 
       <Button
-        label="Sign In"
+        label="Sign Up"
         @click="handelSubmit"
         icon="pi pi-user"
         class="w-full mt-3"
@@ -76,6 +77,7 @@ definePageMeta({
 layout: 'authentication'
 });
 const autheStore = useAuthStore()
+const clientStore = useClientStorets()
 const userInputs = reactive({
 firstName: '',
  lastName: '',
@@ -92,7 +94,7 @@ const handelSubmit = () =>{
         }
     }
     autheStore.signUp(userInputs)
-
+    clientStore.saveClient({name: userInputs.name, email: userInputs.email})
 }
 </script>
 

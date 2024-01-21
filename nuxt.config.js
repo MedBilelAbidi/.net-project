@@ -11,7 +11,7 @@ export default defineNuxtConfig({
     "~/assets/style.scss",
     "primeflex/primeflex.scss",
   ],
-  modules: ['nuxt-primevue',
+  modules: ['nuxt-primevue','@vueuse/nuxt',
   [
       
     "@pinia/nuxt",

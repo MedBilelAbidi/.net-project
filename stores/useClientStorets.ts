@@ -64,7 +64,7 @@ export const useClientStorets = defineStore("clientStorets", {
         "/",
         {
           method: "POST",
-          body : toRaw(client),
+          body : client,
           baseURL: runTimeConfig.public.clientBaseUrl,
         }
       );

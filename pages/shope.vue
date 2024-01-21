@@ -6,8 +6,8 @@
                 <div class="flex justify-content-between">
                     <Button v-if="autheStore.getIsAdmin" @click="addProductVisible = true" label="Add new Product" icon="pi pi-plus"  />
 
-                    <div>
-                        <Button icon="pi pi-shopping-cart " class="p-overlay-badge" v-badge.danger="'5+'" @click="visibleBasket = true" />
+                    <div v-if="!autheStore.getIsAdmin" >
+                        <Button  icon="pi pi-shopping-cart " v-badge="'5'" label="Your Cart" @click="visibleBasket = true" />
 
                     </div>
                     <div class="d-flex gap-3 align-items-end">
@@ -27,11 +27,10 @@
                 <div class="grid grid-nogutter">
                     <div v-for="(item, index) in slotProps.items" :key="index" class="col-12">
                         <div class="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4" :class="{ 'border-top-1 surface-border': index !== 0 }">
-                            <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" :src="item.photo" :alt="item.name" />
+                            <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" :src="item.photo" :alt="item.designation" />
                             <div class="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
                                 <div class="flex flex-column align-items-center sm:align-items-start gap-3">
-                                    <div class="text-2xl font-bold text-900">{{ item.name }}</div>
-                                    <div class="text-1xl font-bold text-900">{{ item.description }}</div>
+                                    <div class="text-2xl font-bold text-900">{{ item.designation }}</div>
                                     <div class="flex align-items-center gap-3">
                                         <span class="flex align-items-center gap-2">
                                             <i class="pi pi-tag"></i>
@@ -47,9 +46,16 @@
 
                                         <Button icon="pi pi-search" @click="collectData(item),detailsVisible = true" rounded ></Button>
                                         <Button icon="pi pi-trash
-                                        " @click="confirm1()" severity="danger" rounded ></Button>
+                                        " @click="confirm1(item.id)" severity="danger" rounded ></Button>
                                     </div>
-
+                                    <div v-else class="flex align-items-center justify-content-between gap-2">
+                                        <Button v-if="autheStore.getIsAdmin" icon="pi pi-pencil" @click="addProductVisible = true,collectEditData(item)" rounded ></Button>
+                                        <Button icon="pi pi-shopping-cart" v-else @click="shopQtityVisiable = true , collectData(item)" rounded ></Button>
+        
+                                        <Button icon="pi pi-search" @click="collectData(item),detailsVisible = true" rounded ></Button>
+        
+        
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -59,7 +65,7 @@
 
             <template #grid="slotProps">
                 <div class="grid grid-nogutter">
-                    <div v-for="(item, index) in slotProps.items" :key="index" class="col-12 sm:col-6 lg:col-12 xl:col-4 p-2">
+                    <div v-for="(item, index) in slotProps.items" :key="index" class=" sm:col-6 lg:col-12 xl:col-4 p-2">
                         <div class="p-4 border-1 surface-border surface-card border-round">
                             <div class="flex flex-wrap align-items-center justify-content-between gap-2">
                                 <span class="flex align-items-center gap-2">
@@ -67,11 +73,11 @@
                                     <span class="font-semibold">{{ item.quantite }}</span>
                                 </span>
                                 <Tag :value="getStockState(item.quantite)" :severity="getSeverity(getStockState(item.quantite))"></Tag>
-                                <Button v-if="autheStore.getIsAdmin" icon="pi pi-trash" @click="confirm1()" severity="danger" rounded ></Button>
+                                <Button v-if="autheStore.getIsAdmin" icon="pi pi-trash" @click="confirm1(item.id)" severity="danger" rounded ></Button>
                             </div>
                             <div class="flex flex-column align-items-center gap-3 py-5">
-                                <img class="w-9 shadow-2 border-round" :src="item.photo" :alt="item.name" />
-                                <div class="text-2xl font-bold">{{ item.name }}</div>
+                                <img class="w-9 shadow-2 border-round" :src="item.photo" :alt="item.designation" />
+                                <div class="text-2xl font-bold">{{ item.designation }}</div>
                                 <div class="text-1xl font-bold text-900">{{ item.description }}</div>
                             </div>
                             <div class="flex align-items-center justify-content-between">
@@ -93,7 +99,7 @@
         <Sidebar v-model:visible="visibleBasket" header="Your Cart" class="w-full md:w-20rem lg:w-30rem">
 
             <ScrollPanel
-                style="width: 100%; height: calc(100vh - 63px - 63px)"
+                style="width: 100%; height: calc(100vh - 63px - 63px - 100px)"
                 :pt="{
                     wrapper: {
                         style: { 'border-right': '10px solid var(--surface-ground)' }
@@ -101,36 +107,39 @@
                     bary: 'hover:bg-primary-400 bg-primary-300 opacity-100'
                 }">
                 <div>
-                    <div v-for="(item, index) in basketItems" :key="index" class="col-12">
-                        <div class="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4" :class="{ 'border-top-1 surface-border': index !== 0 }">
-                            <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" :src="item.photo" :alt="item.name" />
+                    <div v-for="(item, index) in basketItems" :key="index" class="col-12 border rounded-3 mb-2">
+                        <div class="flex flex-column xl:flex-row xl:align-items-start p-4 gap-4">
+
+                            <img class="w-9 sm:w-16rem xl:w-10rem shadow-2 block xl:block mx-auto border-round" 
+                            :src="item.photo" :alt="item.designation" />
                             <div class="flex flex-column sm:flex-row justify-content-between align-items-center xl:align-items-start flex-1 gap-4">
                                 <div class="flex flex-column align-items-center sm:align-items-start gap-3">
-                                    <div class="text-2xl font-bold text-900">{{ item.name }}</div>
-                                    <div class="text-1xl font-bold text-900">{{ item.description }}</div>
                                     <div class="flex align-items-center gap-3">
                                         <span class="flex align-items-center gap-2">
                                             <i class="pi pi-tag"></i>
                                             <span class="font-semibold">{{ item.quantite }}</span>
                                         </span>
                                     </div>
+                                    <div class="text-2xl font-bold text-900">{{ item.designation }}</div>
+
                                 </div>
                                 <div class="flex sm:flex-column align-items-center h-100  justify-content-between sm:align-items-end gap-3 sm:gap-2">
                                     <span class="text-2xl font-semibold">${{ item.prix }}</span>
-                                    <div v-if="autheStore.getIsAdmin" class="d-flex gap-2 flex-grow-1">
-                                   
-                                        <Button icon="pi pi-trash
-                                        " @click="confirm1()" severity="danger" rounded ></Button>
-                                    </div>
 
+                                    <Button icon="pi pi-trash
+                                    " @click="deleteBasketItem(index)" severity="danger" rounded ></Button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </ScrollPanel>
-            <div>
-                <Button  @click="addProductVisible = true" label="Valid Cart" class="w-100" icon="pi pi-plus" :disabled="!basketItems.length" />
+            <div class="">
+                <div>
+                    <label class="h6 d-block" >Total Price:</label>
+                    <InputNumber v-model="userFacture.price" inputId="integeronly" class="w-100 mb-3" disabled=""/>
+                </div>
+                <Button  @click="confirmBasket" label="Valid Cart" class="w-100" icon="pi pi-plus" :disabled="!basketItems.length" />
 
             </div>
         </Sidebar>
@@ -153,11 +162,11 @@
                     </div>
                     <div class="flex align-items-center justify-content-between">
                         <Button icon="pi pi-trash " v-if="autheStore.getIsAdmin"
-                         @click="confirm1()" severity="danger" rounded ></Button>
+                         @click="confirm1(selectedItem.value.id)" severity="danger" rounded ></Button>
                          <Button icon="pi pi-shopping-cart" v-else @click="shopQtityVisiable = true" rounded ></Button>
 
                         <span class="text-2xl font-semibold">${{ selectedItem.value.prix }}</span>
-                        <Button icon="pi pi-pencil" rounded ></Button>
+                        <Button  v-if="autheStore.getIsAdmin" icon="pi pi-pencil" rounded ></Button>
                     </div>
                 </div>
        
@@ -170,7 +179,7 @@
                 <label class="d-block">
                     Product name
                 </label>
-                <InputText type="text" v-model="userInputs.désignation" />
+                <InputText type="text" v-model="userInputs.designation" />
                 <div class="d-flex gap-2">
                     <div class="col-6 p-0">
                         <label class="d-block">
@@ -186,7 +195,7 @@
                          <Dropdown v-model="userInputs.categorieId" 
                          :options="productStore.getCategoriesList" 
                         
-                         filter optionLabel="désignation" 
+                         filter optionLabel="designation" 
                          option-value="id"
                          placeholder="Select a Categorie" class="w-full" />
                         </div>    
@@ -219,8 +228,7 @@
 
             </template>
         </Dialog>
-        <Dialog 
-        v-model:visible="addCatgorieVisible" 
+        <Dialog v-model:visible="addCatgorieVisible" 
         @after-hide="resetForm" modal 
         :header="uiCategproeMutateItems.title" :style="{ width: '400px' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
@@ -228,7 +236,7 @@
                 <label class="d-block">
                    Categorie Name
                 </label>
-                <InputText type="text" v-model="CategorieInput.désignation" />
+                <InputText type="text" v-model="CategorieInput.designation" />
 
             </div>
             <template #footer>
@@ -237,15 +245,14 @@
 
             </template>
         </Dialog>
-        <Dialog 
-        v-model:visible="shopQtityVisiable" 
-        @after-hide="resetForm" modal 
+        <Dialog v-model:visible="shopQtityVisiable" 
+        @after-hide="baseketInputQuantite = 1" modal 
         header="Order Quntity " :style="{ width: '400px' }" 
         :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
         <label class="d-block">
             Quantity
         </label>
-        <InputNumber v-model="baseketInput.quantité" class="w-100"
+        <InputNumber v-model="baseketInputQuantite" class="w-100"
         inputId="horizontal-buttons" showButtons 
         buttonLayout="horizontal" :step="1" decrementButtonClass="p-button-danger" incrementButtonClass="p-button-success">
             <template #incrementbuttonicon>
@@ -270,7 +277,7 @@
         <DataTable  ref="dt" :sortOrder="1" sortField="id" :value="productStore.getCategoriesList" paginator :rows="5" 
         @row-click="collectData($event)"  tableStyle="min-width: 700px">
             <Column field="id" header="Id" sortable  style="width: 20%"></Column>
-            <Column field="désignation" header="Name" sortable  style="width: 40%"></Column>
+            <Column field="designation" header="Name" sortable  style="width: 40%"></Column>
             <Column header="Actions"   style="width: 40%">
                 <template #body="slotProps">
                     <div class="flex gap-2">
@@ -292,6 +299,9 @@
 import { useConfirm } from "primevue/useconfirm";
 import { useToast } from "primevue/usetoast";
 
+
+const factureStores = useFacturesStorets()
+const  ligneFactStore  = useLigneFacturesStorets()
 const autheStore = useAuthStore()
 const confirm = useConfirm();
 const toast = useToast();
@@ -310,30 +320,82 @@ const addProductVisible = ref(false)
 const addCatgorieVisible = ref(false)
 const categorieListVisible = ref(false)
 const shopQtityVisiable = ref(false)
-
+const baseketInputQuantite = ref(1)
 const basketItems = ref([])
 const layout = ref('grid');
 const selectedItem = reactive({
     value : {}
 })
 const userInputs = reactive({})
-const CategorieInput = reactive({})
-const baseketInput = reactive({
-    produit : {},
-    produitId: undefined,
-    quantité : undefined,
-    clinetId: undefined
+const userFacture = reactive({
+    ligneFacture: [],
+    clientId: 1,
+    price: 0
 })
+const CategorieInput = reactive({})
+function findIndexById(array, targetId) {
+    // Iterate through the array
+    for (let i = 0; i < array.length; i++) {
+        // Check if the current object has the desired id
+        if (array[i].id === targetId) {
+            // If found, return the index
+            return i;
+        }
+    }
 
+    // If not found, return -1
+    return -1;
+}
 const AddToBasket = (items) => {
     let item = toRaw(items)
+    console.log(item);
+    const index = findIndexById(basketItems.value, toRaw(items).id)
+
+if (index !== -1) {
+    let qtity = toRaw(basketItems.value[index]).quantite +  baseketInputQuantite.value
+   
+    item.quantite =  qtity + baseketInputQuantite.value
+    item.prix = item.prix * item.quantite 
+
+    userFacture.ligneFacture.splice(index, 1)
+    basketItems.value.splice(index, 1)
 
 
-    item.quantite = baseketInput.quantité
-    
+   let obj = {
+    produitId: item.id,
+    quantite : item.quantite,
+    }
+    userFacture.price += item.prix
+    userFacture.ligneFacture.push(obj)
     basketItems.value.push(item)
 
-    console.log(basketItems.value);
+
+} else {
+    item.quantite = baseketInputQuantite.value
+    item.prix = item.prix * item.quantite 
+
+    
+   let obj = {
+    produitId: item.id,
+    quantite : item.quantite,
+    }
+    userFacture.ligneFacture.push(obj)
+    userFacture.price += item.prix
+    basketItems.value.push(item)
+}
+shopQtityVisiable.value = false
+baseketInputQuantite.value = 1
+
+}
+
+const deleteBasketItem = (index) =>{
+   userFacture.price -=  basketItems.value[index].prix
+   basketItems.value.splice(index, 1)
+   if (basketItems.value.length === 0) {
+    basketItems.value = []
+    userFacture.price = 0
+    userFacture.ligneFacture = []
+   }
 }
 
 const collectData = (item) =>{
@@ -351,12 +413,12 @@ const collectCategore = (item)=>{
     uiCategproeMutateItems.button = 'Save Updates'
     uiCategproeMutateItems.title = 'Edit Categorie'
     CategorieInput.id = item.id
-    CategorieInput.désignation = item.désignation
+    CategorieInput.designation = item.designation
 }
 const handelCategorie = async () =>{
     if ( CategorieInput.id) {
        try {
-         await  productStore.editProducts(CategorieInput)
+         await  productStore.editCategories(CategorieInput)
          toast.add({ severity: 'success', summary: 'Success Message', detail: 'You have edited the product', life: 3000 });
          addCatgorieVisible.value = false
        } catch (error) {
@@ -366,7 +428,7 @@ const handelCategorie = async () =>{
        }
     }else{
      try {
-         await  productStore.addCategories(CategorieInput.désignation)
+         await  productStore.addCategories(CategorieInput.designation)
          toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have saved the product', life: 3000 });
          addCatgorieVisible.value = false
 
@@ -408,12 +470,14 @@ const resetForm = () =>{
     for (const key in CategorieInput) {
         CategorieInput[key] = undefined
     }
+    userFacture.price = 0
+    userFacture.ligneFacture = []
     uiCategproeMutateItems.button ='Add New Categorie',
     uiCategproeMutateItems.title =  'Save new Categorie'
     uiMutateItems.button = 'Add New Product'
     uiMutateItems.title = 'Save new Product'
 }
-const confirm1 = () => {
+const confirm1 = (id) => {
     confirm.require({
         message: 'Are you sure you want to delete?',
         header: 'Confirmation',
@@ -422,7 +486,7 @@ const confirm1 = () => {
         acceptClass: 'p-button-danger p-button-text',
         accept: () => {
             toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 });
-            productStore.deleteProducts(selectedItem.value.id)
+            productStore.deleteProducts(id)
             addProductVisible.value = false
 
         },
@@ -440,6 +504,26 @@ const confirmCategorie = async (id) => {
             toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 });
             await productStore.deleteCategorie(id)
             addCatgorieVisible.value = false
+        },
+    
+    });
+};
+const confirmBasket = async (id) => {
+
+   console.log(userFacture);
+
+    confirm.require({
+        message: 'Are you sure you want to delete?',
+        header: 'Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        rejectClass: 'p-button-text p-button-text',
+        acceptClass: 'p-button-danger p-button-text',
+        accept: async () => {
+            toast.add({ severity: 'info', summary: 'Confirmed', detail: 'You have accepted', life: 3000 });
+            console.log(autheStore.getJWT);
+            await factureStores.saveFacture(userFacture)
+            basketItems.value = []
+            visibleBasket.value = false
         },
     
     });
@@ -472,6 +556,13 @@ const getStockState = (quantite) => {
 onBeforeMount(async()=>{
     await productStore.fetchProducts()
     await productStore.fetchCategories()
-})
+});
 
 </script>
+
+<style>
+img{
+max-height: 100px;
+object-fit: contain;
+}
+</style>

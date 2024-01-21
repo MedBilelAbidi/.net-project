@@ -4,7 +4,7 @@
             <div class="text-center mb-5">
                 <div class="text-900 text-3xl font-medium mb-3">Welcome Back</div>
                 <span class="text-600 font-medium line-height-3">Don't have an account?</span>
-                <a class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Create today!</a>
+                <nuxt-link to="/register" class="font-medium no-underline ml-2 text-blue-500 cursor-pointer">Create today!</nuxt-link>
             </div>
         
             <div>

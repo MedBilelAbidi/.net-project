@@ -3,7 +3,6 @@
         <h1>
             Factures List 
         </h1>
-        <Button @click="addFactureVisible = true" label="Add new Facture" icon="pi pi-plus" class="ms-3" />
 
     </div>
     <div class="card">
@@ -15,11 +14,11 @@
         </template>
     <Column expander style="width: 5rem" />
     <Column field="id" header="ID"></Column>
-    <Column field="clientID" header="Client ID"></Column>
+    <Column field="clientId" header="Client ID"></Column>
 
     <Column field="client.name" header="Client">
     </Column>
-    <Column field="client.email" header="Client">
+    <Column field="client.email" header="Email">
     </Column>
     <Column field="dateFacture" header="Date">
     </Column>
@@ -28,44 +27,14 @@
             {{ slotProps.data.price }}
         </template>
     </Column>
-    <Column field="price" header="Price">
+    <Column field="price" header="Action">
         <template #body="slotProps">
-            <Button icon="pi pi-pencil" @click="addFactureVisible = true,collectEditData(slotProps.data)" rounded ></Button>
 
             <Button icon="pi pi-trash
             " @click="confirm1(slotProps.data.id)" severity="danger" rounded ></Button>
                 </template>
     </Column>
-    <template #expansion="slotProps">
-        <div class="p-3">
-            <h5>Product for facture with </h5>
-            <DataTable :value="slotProps.data.facturekignes">
-                <Column field="produitID" header="Product Id" sortable></Column>
-                <Column field="produit.name" header="Product" sortable></Column>
-                <Column field="produit.description" header="Product description" sortable></Column>
 
-                <Column field="price" header="Price" sortable>
-                    <template #body="slotProps">
-                        {{ slotProps.data.price }}
-                    </template>
-                </Column>
-                <Column field="produit.discount" header="Discount" sortable></Column>
-
-                <Column field="imageUrl" header="Image" sortable>
-                    <template #body="slotProps">
-                        <img  :src="slotProps.data.produit.imageUrl" class="shadow-4" width="64"/>
-                    </template>
-                </Column>
-                <Column field="quantity" header="Qunatity" sortable>
-                </Column>
-                <Column headerStyle="width:4rem" header="Action">
-                    <template #body="slotProps">
-                        <Button @click="collectData(slotProps.data)" icon="pi pi-search" />
-                    </template>
-                </Column>
-            </DataTable>
-        </div>
-    </template>
 </DataTable>
 <Dialog v-model:visible="detailsVisible" modal :header="selectedItem.name" :style="{ width: '500px' }" >
        
@@ -73,7 +42,7 @@
         <div class="flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="flex align-items-center gap-2">
                 <i class="pi pi-tag"></i>
-                <span class="font-semibold">{{ selectedItem.quantity }}</span>
+                <span class="font-semibold">{{ selectedItem.quantite }}</span>
             </div>
         </div>
         <div class="flex flex-column align-items-center gap-3 py-5">
@@ -98,14 +67,14 @@
                 <label class="d-block">
                    Client Name {{ numbOfProducts }}
                 </label>
-                <Dropdown v-model="userInputs.clientID" 
+                <Dropdown v-model="userInputs.clientId" 
                 :options="clientStore.getClientList" 
                
                 filter optionLabel="name" 
                 option-value="id"
                 placeholder="Select a client" class="w-full" />
 
-                <div v-if="userInputs.clientID">
+                <div v-if="userInputs.clientId">
                     <div class="d-flex justify-content-between align-items-end mb-3">
                         <h4>
                             Add Products
@@ -118,27 +87,28 @@
                                 Product N°{{ itemsCount }} Details 
                             </span>
                             <span>
-                                <Button @click="deleteProductObject(itemsCount-1)"  icon="pi pi-times" severity="danger" text rounded  />
+                                <Button @click="deleteProductObject(itemsCount-1)"  
+                                icon="pi pi-times" severity="danger" text rounded  />
 
                             </span>
                          </div>
-                         <Dropdown v-model="userInputs.facturekignes[itemsCount-1].produitID" 
+                         <Dropdown v-model="userInputs.ligneFacture[itemsCount-1]" 
                          @change="(e)=> onProductSelect(itemsCount-1, e)" 
-                         :options="productStore.getProductsList" filter class="w-100"
-                          optionLabel="name" option-value="id" placeholder="Select a product" />
-                         <div class="row" v-if="userInputs.facturekignes[itemsCount-1].produitID">
+                         :options="ligneFactStore.getLigneFactureList" filter class="w-100"
+                          optionLabel="produit.designation"  placeholder="Select a product" />
+                         <div class="row" v-if="userInputs.ligneFacture[itemsCount-1].id">
                             <div class="col-6">
                                 <label class="d-block">
                                     Product Quantity
                                  </label>
-                                <InputNumber v-model="userInputs.facturekignes[itemsCount-1].quantity" @update:modelValue="calcProductPrice(itemsCount-1)" 
+                                <InputNumber v-model="userInputs.ligneFacture[itemsCount-1].quantite" @update:modelValue="calcProductPrice(itemsCount-1)" 
                                 inputId="integeronly" class="w-100"/>
                             </div>
                             <div class="col-6">
                                 <label class="d-block">
                                     Product Price
                                  </label>
-                                <InputNumber v-model="userInputs.facturekignes[itemsCount-1].price" inputId="integeronly" class="w-100" disabled=""/>
+                                <InputNumber v-model="userInputs.ligneFacture[itemsCount-1].prix" inputId="integeronly" class="w-100" disabled=""/>
                             </div>
                          </div>
                       </div>
@@ -176,6 +146,7 @@ import { useToast } from "primevue/usetoast";
 const clientStore = useClientStorets()
 const factureStore = useFacturesStorets()
 const productStore = useProductStore()
+const  ligneFactStore  = useLigneFacturesStorets()
 
 const numbOfProducts = ref(1)
 const confirm = useConfirm();
@@ -183,14 +154,15 @@ const toast = useToast();
 const selectedItem = ref({})
 const addFactureVisible = ref(false)
 const userInputs = reactive({
-    facturekignes: [{
-        produitID : '',
-        quantity: undefined,
+    ligneFacture: [{
+        id : undefined,
+        produitId : '',
+        quantite: undefined,
         price: undefined,
         produit: {}
     }],
-    client : {},
-    clientID: undefined,
+    ClientId1: 1,
+    clientId: undefined,
     price: undefined
 })
 const expandedRows = ref([]);
@@ -208,59 +180,60 @@ const collectEditData = (item) =>{
     uiMutateItems.button = 'Save Updates'
     uiMutateItems.title = 'Edit Factures'
     selectedItem.value = item
-    numbOfProducts.value =  selectedItem.value.facturekignes.length 
+    numbOfProducts.value =  selectedItem.value.ligneFacture.length 
     for (const key in selectedItem.value) {
          userInputs[key] = selectedItem.value[key]
     }
 }
 const onProductSelect = (index, e) =>{
-    userInputs.facturekignes[index].produit =  productStore.getProductsList.find(item => item.id === userInputs.clientID);
+    // userInputs.ligneFacture[index].produit =  productStore.getProductsList.find(item => item.id === userInputs.clientId);
 
-    userInputs.facturekignes[index].price = userInputs.facturekignes[index].produit.price
-    userInputs.facturekignes[index].quantity = 1
-    let totalPrice = 0
-    for (let index = 0; index < userInputs.facturekignes.length; index++) {
-        const element = userInputs.facturekignes[index];
-        totalPrice = totalPrice + element.price
-    }
-    userInputs.price = totalPrice
+    // userInputs.ligneFacture[index].price = userInputs.ligneFacture[index].produit.price
+    // userInputs.ligneFacture[index].quantite = 1
+    // let totalPrice = 0
+    // for (let index = 0; index < userInputs.ligneFacture.length; index++) {
+    //     const element = userInputs.ligneFacture[index];
+    //     totalPrice = totalPrice + element.price
+    // }
+    // userInputs.price = totalPrice
 }
 const calcProductPrice = (index) =>{
-    if (!userInputs.facturekignes[index].quantity) {
-        return
-    }
-    userInputs.facturekignes[index].price =  userInputs.facturekignes[index].produit.price * userInputs.facturekignes[index].quantity
+    // if (!userInputs.ligneFacture[index].quantite) {
+    //     return
+    // }
+    // userInputs.ligneFacture[index].price =  userInputs.ligneFacture[index].produit.price * userInputs.ligneFacture[index].quantite
 
-    let totalPrice = 0
-    for (let index = 0; index < userInputs.facturekignes.length; index++) {
-        const element = userInputs.facturekignes[index];
-        totalPrice = totalPrice + element.price
-    }
-    userInputs.price = totalPrice
+    // let totalPrice = 0
+    // for (let index = 0; index < userInputs.ligneFacture.length; index++) {
+    //     const element = userInputs.ligneFacture[index];
+    //     totalPrice = totalPrice + element.price
+    // }
+    // userInputs.price = totalPrice
 }
 
 const addProductObject = () =>{
     numbOfProducts.value++ 
-    userInputs.facturekignes.push({
-        produitID : '',
-        quantity: undefined,
+    userInputs.ligneFacture.push({
+        id : undefined,
+        produitId : '',
+        quantite: undefined,
         price: undefined,
         produit: {}
     })
 }
 const deleteProductObject = (index) =>{
-    console.log('deleteProductObject');
     numbOfProducts.value -= 1
-    userInputs.facturekignes.splice(index, 1)
+    userInputs.ligneFacture.splice(index, 1)
 }
 const resetForm = () =>{
     for (const key in userInputs) {
          userInputs[key] = undefined
          
     }
-    userInputs.facturekignes = [{
-        produitID : '',
-        quantity: undefined,
+    userInputs.ligneFacture = [{
+        id : undefined,
+        produitId : '',
+        quantite: undefined,
         price: undefined,
         produit: {}
     }]
@@ -313,6 +286,7 @@ onBeforeMount(async()=>{
     await factureStore.fetchFacture()
     await clientStore.fetchClient()
     await productStore.fetchProducts()
+    await ligneFactStore.fetchLigneFactureByClient(1)
 
 })
 </script>
